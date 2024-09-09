@@ -14,6 +14,13 @@
             gap: 20px;
         }
 
+        .image-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 20px;
+        }
+
         .image-item {
             display: flex;
             flex-direction: column;
@@ -23,7 +30,22 @@
             text-align: center;
         }
 
+        .image-item-large {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 400px;
+            min-width: 50px;
+            text-align: center;
+        }
+
         .image-item img {
+            width: 100%; 
+            height: auto;
+            border-radius: 1px;
+        }
+
+        .image-item-large img {
             width: 100%; 
             height: auto;
             border-radius: 1px;
@@ -184,5 +206,24 @@
     </div>    
       
     <h3>Bells & Whistles</h3>
+    <h4>Improved similarity score</h4>
+    <p>For other improvements to my implementation, I looked into the scikitlearn image library to see if 
+      I could find a better measure of similarity. I came across the function skimage.metrics.structural_similarity 
+      (SSIM) which computes the structural similarity between two images. It works better than MSE because it incorporates 
+      the idea that pixels have strong interdependencies with one another, and as such comparing the pixels in one 
+      image with those around it in the second would give a better measure of perceived similarity.</p>
+    <p>Here is a side to side comparison between emir.tiff using MSE and using SSIM.</p>
+    <div class="image-row">
+      <div class="image-item-large">
+        <img src="images/emir.jpg" alt="cathedral">
+        <p class="subtitle">MSE</p>
+        <p class="subtitle">Red: (24, 45); Green: (44, -15)</p>
+      </div>
+      <div class="image-item-large">
+        <img src="images/emir_bells.jpg" alt="cathedral">
+        <p class="subtitle">SSIM</p>
+        <p class="subtitle">Red: (19, 45); Green: (40, 31)</p>
+      </div>
+    </div> 
 </body>
 </html>
