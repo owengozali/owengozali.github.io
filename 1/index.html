@@ -1,16 +1,188 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Portfolio</title>
+    <title>Project 1</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+        .image-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 20px;
+        }
+
+        .image-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 200px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .image-item img {
+            width: 100%; 
+            height: auto;
+            border-radius: 1px;
+        }
+
+        .subtitle {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .small-image {
+            max-width: 10%;
+            max-height: 10%;
+        }
+        .big-image {
+            max-width: 40%;
+            width: auto;
+            height: auto;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
-    <h1>Welcome to My CS180 Portfolio!</h1>
-    <a href="./1/index.html">Project 1</a>
+    <h1>Project 1 - Owen Gozali</h1>
+    <h2>Images of the Russian Empire: Colorizing the Prokudin-Gorskii photo collection</h2>
+    <h3>Description</h3>
+    <p>
+        Sergei Mikhailovich Prokudin-Gorskii was a man well ahead of his time. 
+        Convinced, as early as 1907, that color photography was the wave of the future, he won Tzar's 
+        special permission to travel across the vast Russian Empire and take color photographs of everything he 
+        saw including the only color portrait of Leo Tolstoy. And he really photographed everything: people, buildings, 
+        landscapes, railroads, bridges... thousands of color pictures! His idea was simple: record three exposures of 
+        every scene onto a glass plate using a red, a green, and a blue filter. Never mind that there was no way to 
+        print color photographs until much later -- he envisioned special projectors to be installed in "multimedia" 
+        classrooms all across Russia where the children would be able to learn about their vast country.
+    </p>
+    <p>
+        The goal of this project is to combine these black and white photos from the three filters using computer 
+        vision techniques to create a unified colored image.
+    </p>
+    <h3>Approach</h3>
+    <h4>Cropping</h4>
+    <p>The images come in a stack of three, one for each colored filter as shown here:</p>
+    <img src="images/cathedral_raw.jpg" alt="cathedral_raw" class="small-image">
+    <p>
+        To separate these images, we did a simple partition into three equal parts by chopping the image into 
+        three via height. Then we cropped the sides to reduce the area of the black bars on the sides. 
+        Then we cropped the heigh a bit to remove the top and  bottom borders.
+    </p>
+    <img src="images/crop.png" alt="cathedral" class="big-image">
+    <h4>Alignment</h4>
+    <p>Alignment is done bying the image around a couple of pixels in all directions and score the 
+        alignment of the aligned image against the source. This is done using an L2 Norm on the difference on the pixel 
+        values of the images. 
+    </p>
+    <p>
+        This alignment approach overall worked well for all the images except emir.tif (which will be explored more 
+        in Bells and Whistles) however it took a long time for the bigger tif images. Taking upwards of 1-2 minutes
+        per picture.
+    </p>
+    <h4>Multiscaling</h4>
+    <p>
+        A solution to this is to make use of an image pyramid. The function is now called recursively on a lower 
+        quality version of the image after being downsampled 2x. Then the same alignment algo is ran on the lowest
+        resolution to get a rough alignment. Then it returns the calculated optimal offsets and passes it up to the
+        next layer. The next layer uses the optimal offsets as a starting point and reevaluates it with small adjustments.
+        This greatly sped up processing of the tif images, processing them in as little as 20 seconds (~5x speedup).
+    </p>
+    <h3>Results</h3>
+    <p>
+        Here are the results of running the algorithm on the provided images:
+    </p>
+    <div class="image-grid">
+      <div class="image-item">
+        <img src="images/cathedral.jpg" alt="cathedral">
+        <p class="subtitle">cathedral.jpg</p>
+        <p class="subtitle">Red: (2, 5); Green: (3, 6)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/church.jpg" alt="monastery">
+        <p class="subtitle">church.jpg</p>
+        <p class="subtitle">Red: (0, 23); Green: (-4, -6)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/emir.jpg" alt="cathedral">
+        <p class="subtitle">emir.jpg</p>
+        <p class="subtitle">Red: (24, 45); Green: (44, -15)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/harvesters.jpg" alt="monastery">
+        <p class="subtitle">harvesters.jpg</p>
+        <p class="subtitle">Red: (9, 45); Green: (9, 45)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/icon.jpg" alt="cathedral">
+        <p class="subtitle">icon.jpg</p>
+        <p class="subtitle">Red: (17, 40); Green: (23, 24)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/lady.jpg" alt="monastery">
+        <p class="subtitle">lady.jpg</p>
+        <p class="subtitle">Red: (8, 45); Green: (10, 45)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/melons.jpg" alt="cathedral">
+        <p class="subtitle">melons.jpg</p>
+        <p class="subtitle">Red: (0, 45); Green: (0, 45)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/monastery.jpg" alt="monastery">
+        <p class="subtitle">monastery.jpg</p>
+        <p class="subtitle">Red: (2, -3); Green: (2, -3)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/onion_church.jpg" alt="cathedral">
+        <p class="subtitle">onion_church.jpg</p>
+        <p class="subtitle">Red: (27, 45); Green: (36, 42)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/sculpture.jpg" alt="monastery">
+        <p class="subtitle">sculpture.jpg</p>
+        <p class="subtitle">Red: (-11, 33); Green: (-26, 45)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/self_portrait.jpg" alt="monastery">
+        <p class="subtitle">self_portrait.jpg</p>
+        <p class="subtitle">Red: (24, 0); Green: (37, 0)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/three_generations.jpg" alt="monastery">
+        <p class="subtitle">three_generations.jpg</p>
+        <p class="subtitle">Red: (10, 45); Green: (9, 45)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/tobolsk.jpg" alt="monastery">
+        <p class="subtitle">tobolsk.jpg</p>
+        <p class="subtitle">Red: (3, 3); Green: (3, -1)</p>
+      </div>
+    
+      <div class="image-item">
+        <img src="images/train.jpg" alt="monastery">
+        <p class="subtitle">train.jpg</p>
+        <p class="subtitle">Red: (5, 44); Green: (32, 29)</p>
+      </div>
+    </div>    
+      
+    <h3>Bells & Whistles</h3>
 </body>
 </html>
