@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: space-around; /* Space out the images */
+        }
+        .image-item {
+            flex: 0 1 20%; /* Take up at most 20% of the container */
+            text-align: center; /* Center the caption below the image */
+        }
+
+        .big-image-item {
+            flex: 2; /* Let each item take equal space */
+            max-width: 500px; /* Limit the maximum width */
+            text-align: center; /* Center the caption below the image */
+        }
+        
+        img {
+            width: 100%; /* Image takes up full width of its container */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        .subtitle {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Project 2 - Owen Gozali</h1>
+    <h2>Filters and Frequencies</h2>
+    <h3>Introduction</h3>
+    <p>
+        In this project I will be experimenting with differnet image filters and 
+        breaking down images into different frequency bands to create some interesting results.
+    </p>
+    <h3>Filters</h3>
+    <h4>Finite Difference Operator</h4>
+    <p>
+      We can show the partial derrivative of an image in the x and y directions by convolving them with 
+      [[1,-1]] and [[1],[-1]], respectively.
+    </p>
+    
+    <!-- put in images for cameraman_x, y, and gradient magnitude, then turn to edge image -->
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/filters/cameraman.png" alt="Image 1">
+        <p>Original Image</p>
+    </div>
+      <div class="image-item">
+          <img src="images/filters/dx.png" alt="Image 1">
+          <p>Dx Edge Detector</p>
+      </div>
+      <div class="image-item">
+        <img src="images/filters/dy.png" alt="Image 1">
+          <p>Dy Edge Detector</p>
+      </div>
+      <div class="image-item">
+        <img src="images/filters/gradmag.png" alt="Image 1">
+          <p>Gradient Magnitude</p>
+      </div>
+      <div class="image-item">
+        <img src="images/filters/grad_thresh.png" alt="Image 1">
+          <p>Gradient Magnitude with Threshold</p>
+      </div>
+  </div>
+
+    <h4>Derrivative of Gaussian (DoG) Filter</h4>
+    <p>
+      Using the finite difference operator directly on the image was quite noisy as it falsely detected 
+      background elements as edges. We can try blurring the image first with a Gaussian low-pass filter to get
+      rid of some of this noise and then apply the difference operator.
+    </p>
+    <!-- show images of noise and then difference operator -->
+    <div class="image-container">
+      <div class="image-item">
+          <img src="images/filters/blurred.png" alt="Image 1">
+          <p>Cameraman Through Low-pass Filter</p>
+      </div>
+      <div class="image-item">
+        <img src="images/filters/gauss_x.png" alt="Image 1">
+          <p>Dx Edge Detector with Gaussian Blur</p>
+      </div>
+      <div class="image-item">
+        <img src="images/filters/gauss_y.png" alt="Image 1">
+          <p>Dy Edge Detector with Gaussian Blur</p>
+      </div>
+      <div class="image-item">
+        <img src="images/filters/gauss_xy.png" alt="Image 1">
+          <p>Gradient Magnitude with Gaussian Blur</p>
+      </div>
+  </div>
+    <p>
+      The edge detection here looks a lot better than our previous attempt, as expected. 
+      It removed a lot of the noise that was present in the unfiltered image. 
+      Overall it does a better job at detecting edges.
+    </p>
+
+    <p>
+      We convolved the image with a gaussian and then a difference operator. Instead of convolving with two filters,
+      we can just convolve with one by combining the two filters we applied. By convolving the Gaussian and 
+      difference operators, we can create the Derrivative of Gaussian (DoG) filter. Visualized as follows:
+    </p>
+
+    <!-- show images of DoG_x and DoG_y -->
+    <div class="image-container">
+      <div class="image-item">
+          <img src="images/filters/dog_x.png" alt="Image 1">
+          <p>DoG for dx</p>
+      </div>
+      <div class="image-item">
+        <img src="images/filters/dog_y.png" alt="Image 1">
+          <p>DoG for dy</p>
+      </div>
+  </div>
+
+    <p>
+      As we can see the result of using the DoG filters vs using the gaussian and then the difference operators
+      yields the same thing.
+    </p>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/filters/gauss_x.png" alt="Image 1">
+          <p>Image Through Gaussian then Difference Operator</p>
+      </div>
+      <div class="image-item">
+        <img src="images/filters/gauss_x.png" alt="Image 1">
+          <p>Image Through DoG Filter</p>
+      </div>
+    </div>
+
+    <h3>Frequencies</h3>
+    <h4>Image Sharpening</h4>
+    <p>
+      We can create a "high pass filter" to only get the high frequencies of an image by subtracting the original
+      image with a low-pass (gaussian) filter. If we then add more of these high frequencies to the original
+      image, we can create the effect of "sharpening" the image.
+    </p>
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/sharpening/taj.jpg" alt="Image 1">
+          <p>Original Image</p>
+      </div>
+      <div class="image-item">
+        <img src="images/sharpening/sharpened_taj.jpg" alt="Image 1">
+          <p>Original Image Sharpened</p>
+      </div>
+    </div>
+
+    <p>
+    We can also do all this in one convolution with the Unsharp Mask filter. Here's a picture of a music festival
+    that we can sharpen.
+    </p>
+    <!-- show illenium image + sharpened -->
+    <div class="image-container">
+      <div class="big-image-item">
+        <img src="images/sharpening/rave.jpg" alt="Image 1">
+          <p>Original Image</p>
+      </div>
+      <div class="big-image-item">
+        <img src="images/sharpening/sharpened_rave.jpg" alt="Image 1">
+          <p>Original Image Sharpened</p>
+      </div>
+    </div>
+    <p>
+      As an evaluation, we can take an image and blur it and then apply the sharpening procedure.
+      </p>
+      <!-- show image of blur and sharpen -->
+      <div class="image-container">
+        <div class="big-image-item">
+          <img src="images/sharpening/blurred_rave.jpg" alt="Image 1">
+            <p>Blurred Image</p>
+        </div>
+        <div class="big-image-item">
+          <img src="images/sharpening/blurred_sharpened_rave.jpg" alt="Image 1">
+            <p>Blurred Image Sharpened</p>
+        </div>
+      </div>
+    <p>
+      It looks like the image still looses some of the detail from the original blur but it's still imrpoved by
+      sharpening.
+    </p>
+    <h4>Hybrid Images</h4>
+    <p>
+      If we take the low frequency components of an image A and combine it with the high frequency components
+      of another image B, we can make a hybrid image that looks like image A from afar but looks like image B
+      when nearby.
+    </p>
+    <!-- show image of low freq cat and high freq dog and then combined-->
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/hybrid/happy.jpg" alt="Image 1">
+          <p>Happy Man</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/sad.jpg" alt="Image 1">
+          <p>Sad Man</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/happysad_3_7.png" alt="Image 1">
+          <p>Emotionally Ambiguous Man (High Freq: Happy, Low Freq: Sad)</p>
+      </div>
+    </div>
+    <p>
+      To see what's happening here, we can take the fourier transform of some of these images and see what the
+      low pass and high pass filter is doing to these images.
+    </p>
+    <!-- show gaussian plots as well -->
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/hybrid/fft_im1_before.jpg" alt="Image 1">
+          <p>Happy Frequency Before High-Pass</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/fft_im1_after.jpg" alt="Image 1">
+          <p>Happy Frequency After High-Pass</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/fft_im2_before.jpg" alt="Image 1">
+          <p>Sad Frequency Before Low-Pass</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/fft_im2_after.jpg" alt="Image 1">
+          <p>Sad Frequency After Low-Pass</p>
+      </div>
+    </div>
+    <p>
+      We can see that the high passed image has its high frequencies more pronounced and we can see a weakening
+      of the frequencies near the origin. For the low passed image, it seems to be a lot more dampened near
+      the outer regions compared to its original. This is presumebly because a lot of the high frequencies are cut out.
+    </p>
+    <p>
+      I also tried doing it with color as well and the results look pretty good as well:
+    </p>
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/hybrid/happy.jpg" alt="Image 1">
+          <p>Happy Man</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/sad.jpg" alt="Image 1">
+          <p>Sad Man</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/happy_sad_color.png" alt="Image 1">
+          <p>Emotionally Ambiguous Man (High Freq: Happy, Low Freq: Sad)</p>
+      </div>
+    </div>
+    <p>
+      Here are some other hybrid images I made (the one with the cupcake was a bit of a failure)
+    </p>
+
+
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/hybrid/dog.jpeg" alt="Image 1">
+          <p>Dog</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/cat.jpg" alt="Image 1">
+          <p>Cat</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/catdog3_3.png" alt="Image 1">
+          <p>Dog-Cat (High Freq: Dog, Low Freq: Cat)</p>
+      </div>
+    </div>
+
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/hybrid/nutmeg.jpg" alt="Image 1">
+          <p>Nutmeg</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/DerekPicture.jpg" alt="Image 1">
+          <p>Derek</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/profcat15_15.png" alt="Image 1">
+          <p>Derek-Nutmeg (High Freq: Nutmeg, Low Freq: Derek)</p>
+      </div>
+    </div>
+
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/hybrid/puppy.jpg" alt="Image 1">
+          <p>Puppy</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/muffin.jpg" alt="Image 1">
+          <p>Muffin</p>
+      </div>
+      <div class="image-item">
+        <img src="images/hybrid/failed_pupcake.png" alt="Image 1">
+          <p>Failed Pupcake (High Freq: Puppy, Low Freq: Muffin)</p>
+      </div>
+    </div>
+
+    <h4>Multiresolution Blending</h4>
+    <p>
+      When blending two images together, we want to ensure the transition is as seemless as possible.
+      Frequencies can help us with this! For an image's high frequencies, we want to ensure the cut is clean
+      because otherwise the image will look ghosty with obvious details fading into the other image. For an
+      images low frequencies, we can make the blending a lot more smooth because we know there aren't any
+      jarring bits. We can break down the images into different frequency bands by constructing a Laplacian stack. 
+      A Laplacian stack is made from a Gaussian stack (a stack of progressively more blurry images) and we can take
+      the difference between each level to get a specific band of frequencies. We can see this here with the Oraple:
+    </p>
+
+    <div class="image-item">
+      <img src="images/blending/laplacian_apple.jpeg" alt="Image 1">
+        <p>Laplacian Stack of Apple</p>
+    </div>
+
+    <div class="image-item">
+      <img src="images/blending/laplacian_orange.jpeg" alt="Image 1">
+        <p>Laplacian Stack of Orange</p>
+    </div>
+
+    <!-- images of oraple blending -->
+    <p>
+      Once we break it down into its frequencies, we can blend them smoothly with a different mask at each level to
+      create the following:
+    </p>
+
+
+    <div class="image-item">
+      <img src="images/blending/cropped_left.jpeg" alt="Image 1">
+        <p>Progression of Apple Blending</p>
+    </div>
+
+    <div class="image-item">
+      <img src="images/blending/cropped_right.jpeg" alt="Image 1">
+        <p>Progression of Orange Blending</p>
+    </div>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/blending/apple.jpeg" alt="Image 1">
+          <p>Apple</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/orange.jpeg" alt="Image 1">
+          <p>Orange</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/orapple.jpg" alt="Image 1">
+          <p>Orapple (Orange + Apple)</p>
+      </div>
+    </div>
+    <!-- finished image of oraple -->
+    <p>
+      We can also do this with an irregular mask (where it's not just a straight line down the middle).
+      The first picture is of a toy Tesla I got at a career fair, and the second is a shot of street parking
+      I took from the 8th floor of Berkeley Way West. Using an irregular mask shown in the third picture, I can
+      smoothly blend the toy car as if it were parked right on the street!
+    </p>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/blending/tesla.jpg" alt="Image 1">
+          <p>Tesla Toy</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/park.jpg" alt="Image 1">
+          <p>Street View from BWW</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/tesla_mask.jpg" alt="Image 1">
+          <p>Tesla Mask</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/finaltesla.jpg" alt="Image 1">
+          <p>Blended Tesla Toy into Parking Spot</p>
+      </div>
+    </div>
+    <!-- show mask and finished tesla seam -->
+    <p>
+      Here are some other results of the blending:
+    </p>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/blending/moci.jpg" alt="Image 1">
+          <p>My Dog Mochi (all the way in Indonesia)</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/floor.jpg" alt="Image 1">
+          <p>The floor on BWW</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/finalmoci.jpg" alt="Image 1">
+          <p>Mochi's here!</p>
+      </div>
+    </div>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/blending/vball.jpg" alt="Image 1">
+          <p>Volleyball</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/soccer.jpg" alt="Image 1">
+          <p>Soccerball</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/finalsoccer.jpg" alt="Image 1">
+          <p>Socceyball</p>
+      </div>
+    </div>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/blending/pot.jpg" alt="Image 1">
+          <p>Dish of Potatoes</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/broc.jpg" alt="Image 1">
+          <p>Dish of Brocolli</p>
+      </div>
+      <div class="image-item">
+        <img src="images/blending/finalpot.jpg" alt="Image 1">
+          <p>Dish of Brocolly & Potatoes</p>
+      </div>
+    </div>
+    <!-- other blending images -->
+</body>
+</html>
