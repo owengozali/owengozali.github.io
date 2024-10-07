@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: space-around; /* Space out the images */
+        }
+        .image-item {
+            flex: 0 1 20%; /* Take up at most 20% of the container */
+            text-align: center; /* Center the caption below the image */
+        }
+
+        .big-image-item {
+            flex: 2; /* Let each item take equal space */
+            max-width: 500px; /* Limit the maximum width */
+            text-align: center; /* Center the caption below the image */
+        }
+        
+        img {
+            width: 100%; /* Image takes up full width of its container */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        .subtitle {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Project 3 - Owen Gozali</h1>
+    <h2>Face Morphing</h2>
+    <h3>Introduction</h3>
+    <p>
+        In this project I will be using triangle meshes, affine transformations, and inverse splatting to generate some
+        cool face morphs.
+    </p>
+    <h3>Part 1: Defining Correspondences</h3>
+    <p>
+      To best morph two faces together, selecting facial correspondences is key. Using this online tool, I matched up the
+      key features of my face with breakout Asian actor Randall Park's. I selected key features like the eyes, nose, mouth, etc.
+      I then generate a triangular mesh connecting all these points using Delaunay triangulation to do so efficiently.
+      Below are the visualizations of the triangulations. 
+    </p>
+    
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/pt1/owen_pts.png" alt="Image 1">
+        <p>Owen Correspondences</p>
+    </div>
+      <div class="image-item">
+          <img src="images/pt1/randall_pts.png" alt="Image 1">
+          <p>Randall Correspondences</p>
+      </div>
+      <div class="image-item">
+        <img src="images/pt1/owen_mesh.png" alt="Image 1">
+        <p>Owen Triangle Mesh</p>
+    </div>
+    <div class="image-item">
+      <img src="images/pt1/randall_mesh.png" alt="Image 1">
+      <p>Randall Triangle Mesh</p>
+  </div>
+  </div>
+
+  <h3>Part 2: Computing the "Mid-way Face"</h3>
+  <p>
+    After calculating the triangulation and applying it on the two images, we can now calculate an intermediate image between
+    them. We start by calculating the midpoints of each correspondence between my face and Randall's face to get the 
+    "mid-way face"'s correspondences.
+    Then for each triangle in my face, I calculate the affine transformation that would map all points in that triangle to the
+    corresponding triangle in the mid-face. We then invert this transformation and use it to find the corresponding color a point should be
+    from my face using an interpolation function. I repeat this for Randall and compute the color of each pixel of the mid-face
+    as an equally weighted average of the two images. This is the result.
+  </p>
+    <div class="image-container">
+      <div class="image-item">
+          <img src="images/pt2/owen.jpg" alt="Image 1">
+          <p>Me</p>
+      </div>
+      <div class="image-item">
+        <img src="images/pt2/randall.jpeg" alt="Image 1">
+          <p>Randall (the goat) Park</p>
+      </div>
+      <div class="image-item">
+        <img src="images/pt2/owen_park.png" alt="Image 1">
+          <p>Randall Gozali</p>
+      </div>
+  </div>
+  <h3>Part 3: The Morph Sequence</h3>
+  <p>
+    I wrote a code to generalize what I was doing in Part 2. It lets me specify the weight for the warp I need to do 
+    (so I don't need to always warp to the mid-way correspondences). And I also allow it to specify how much of the
+    image's pixel values would come from the source or destination image. I used this to generate a face with a varying
+    weight from 0 to 1.
+  </p>
+  <p>Here is what the completed morph looks like in video form.</p>
+  <iframe width="479" height="851" src="https://www.youtube.com/embed/1fIB_eVIwxg" title="me to randall" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  
+  <h3>Part 4: The Mean Face</h3>
+  <p>
+    I downloaded the Danes face dataset to gain access to 40 different people's faces and respective correspondences. I calculated the 
+    mean correspondence and warped every face in that dataset to the mean. Then I calculated the mean of all those faces 
+    after warping them to get "The Average Dane" shown below, with some examples of faces warped to the mean.
+  </p>
+  <!-- show image of mean face -->
+   <!-- show image of some face warped to the mean face -->
+   
+    <div class="image-container">
+      <div class="image-item">
+          <img src="images/pt4/dane_1.png" alt="Image 1">
+          <p>Dane 1</p>
+      </div>
+      <div class="image-item">
+        <img src="images/pt4/dane_2.png" alt="Image 1">
+          <p>Dane 2</p>
+      </div>
+      <div class="image-item">
+        <img src="images/pt4/dane_3.png" alt="Image 1">
+          <p>Dane 3</p>
+      </div>
+    </div>
+
+    <div class="image-container">
+      <div class="image-item">
+          <img src="images/pt4/dane_to_mean_1.png" alt="Image 1">
+          <p>Typicalized Dane 1</p>
+      </div>
+      <div class="image-item">
+        <img src="images/pt4/dane_to_mean_2.png" alt="Image 1">
+          <p>Typicalized Dane 2</p>
+      </div>
+      <div class="image-item">
+        <img src="images/pt4/dane_to_mean_3.png" alt="Image 1">
+          <p>Typicalized Dane 3</p>
+      </div>
+    </div>
+
+    <div class="image-container">
+      <div class="image-item">
+          <img src="images/pt4/average_dane.png" alt="Image 1">
+          <p>The Average Dane</p>
+      </div>
+    </div>
+    
+    <p>I then warped myself to the mean correspondence to see what I would look like if I were Danish.</p>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/pt4/me.png" alt="Image 1">
+        <p>Me (0% Danish)</p>
+      </div>
+      <div class="image-item">
+          <img src="images/pt4/me_danish.png" alt="Image 1">
+          <p>Me (50% Danish)</p>
+      </div>
+    </div>
+
+    <p>I then warped the Average Dane to my correspondence structure to what the typical Danish would look like if
+      they were Indonesian.</p>
+
+      <div class="image-container">
+        <div class="image-item">
+          <img src="images/pt4/average_dane.png" alt="Image 1">
+          <p>Average Dane</p>
+        </div>
+        <div class="image-item">
+            <img src="images/pt4/average_to_me.jpg" alt="Image 1">
+            <p>Average Danish Indonesian</p>
+        </div>
+      </div>
+
+      <h3>Part 5: Caricatures and Extrapolation</h3>
+  <p>
+    Something cool we can do is extrapolate from the vector linking the mean face to me and see what I would look like if 
+    I were even more of myself or even more of the mean. This was achieved by using extreme alpha values (less than zero or more than one)
+    and here are the results.
+  </p>
+  <div class="image-container">
+    <div class="image-item">
+      <img src="images/pt5/me_more_average.jpg" alt="Image 1">
+      <p>Very Danish Me</p>
+    </div>
+    <div class="image-item">
+        <img src="images/pt5/me_more_me.jpg" alt="Image 1">
+        <p>Very Me Me</p>
+    </div>
+  </div>
+
+  <h3>Bells and Whistles: "Would you date me if I was a guy?"</h3>
+  <p>
+    My girlfriend asked me this question the other day so I decided to test it out myself. I took a picture of her while we were
+    facetime (with her consent of course) and found a picture of the average Chinese man on the internet. I then morphed their faces
+    together to see what she would look like as a man. First I just morphed the correspondences so she had the bone structure of a man, then
+    I did the same for just the difusion and then I did both.
+  </p>
+
+  <div class="image-container">
+    <div class="image-item">
+      <img src="images/bw/angela.png" alt="Image 1">
+      <p>My Girlfriend (Angela)</p>
+    </div>
+    <div class="image-item">
+        <img src="images/bw/chinese.jpg" alt="Image 1">
+        <p>Average Chinese Man</p>
+    </div>
+  </div>
+
+  <div class="image-container">
+    <div class="image-item">
+      <img src="images/bw/male_angela_structure.jpg" alt="Image 1">
+      <p>My Girlfriend with Man Bones</p>
+    </div>
+    <div class="image-item">
+        <img src="images/bw/male_angela_diffusion.jpg" alt="Image 1">
+        <p>My Girlfriend with Man Skin</p>
+    </div>
+    <div class="image-item">
+      <img src="images/bw/male_angela.jpg" alt="Image 1">
+      <p>Angelo Feng</p>
+  </div>
+  </div>
+
+  <!-- show angela with man bones -->
+  <!-- show angela with man makeup -->
+   <!-- show male angela -->
+<p>lowkey...</p>
+  
+
+</body>
+</html>
