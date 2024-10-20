@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: space-around; /* Space out the images */
+        }
+        .image-item {
+            flex: 0 1 20%; /* Take up at most 20% of the container */
+            text-align: center; /* Center the caption below the image */
+        }
+
+        .big-image-item {
+            flex: 2; /* Let each item take equal space */
+            max-width: 500px; /* Limit the maximum width */
+            text-align: center; /* Center the caption below the image */
+        }
+
+        .small-image {
+          width: 50%; /* Image takes up full width of its container */
+          height: auto; 
+        }
+        
+        img {
+            width: 100%; /* Image takes up full width of its container */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        .subtitle {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Project 4 - Owen Gozali</h1>
+    <h2>Photo Mosaics</h2>
+    <h3>Introduction</h3>
+    <p>
+        In this project I will be stiching together imagestaken from the same center of projection, similar to constructing
+        a panorama from scratch.
+    </p>
+    <h3>Part 1: Taking Images</h3>
+    <p>
+      I took a variety of images throughout the week leading up to this project. Here are the ones I ended up using:
+    </p>
+
+    
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/house1.jpg" alt="Image 1">
+        <p>View of house in northside Berkeley (I)</p>
+    </div>
+    <div class="image-item">
+      <img src="images/house2.jpg" alt="Image 1">
+      <p>View of house in northside Berkeley (II)</p>
+  </div>
+  <div class="image-item">
+    <img src="images/imleft.jpg" alt="Image 1">
+    <p>View of classroom while I was bored (I)</p>
+</div>
+<div class="image-item">
+  <img src="images/imright.jpg" alt="Image 1">
+  <p>View of classroom while I was bored (II)</p>
+</div>
+</div>
+<div class="image-container">
+<div class="image-item">
+  <img src="images/lab_left.jpg" alt="Image 1">
+  <p>View of Berkeley Way West 8th Floor (I)</p>
+</div>
+<div class="image-item">
+  <img src="images/lab_right.jpg" alt="Image 1">
+  <p>View of Berkeley Way West 8th Floor (II)</p>
+</div>
+<div class="image-item">
+  <img src="images/maxcap.jpg" alt="Image 1">
+  <p>Picture of random sign</p>
+</div>
+<div class="image-item">
+  <img src="images/bair.jpg" alt="Image 1">
+  <p>Picture of random LCD display</p>
+</div>
+  </div>
+
+  <h3>Part 2: Recovering Homographies</h3>
+  <p>
+    Similar to the previous project, we get correspondences between the images to be able to warp them to one another.
+  </p>
+    <div class="image-container">
+      <div class="image-item">
+          <img src="images/lab_corr1.png" alt="Image 1">
+          <p>Point correspondences for first shot</p>
+      </div>
+      <div class="image-item">
+        <img src="images/lab_corr2.png" alt="Image 1">
+          <p>Point correspondences for second shot</p>
+      </div>
+  </div>
+  <p>
+    The problem is, we no longer can do a triangular warp to align the images, but need something more powerful: a homography.
+    A homography is another type of imaging warping method but this has 8 degrees of freedom instead of one. The entire warp
+    matrix can be configured except for the bottom right corner, which must be 1.
+
+    We can derrive a more straightforward matrix of coefficients to solve using least squares:
+  </p>
+  <img class="small-image" src="images/math.png" alt="Image 1" width="50%">
+
+  <p>
+    Once we solve for our homography matrix, we can warp the image as we please.
+  </p>
+
+  <div class="image-container">
+    <div class="image-item">
+        <img src="images/lab_right.jpg" alt="Image 1">
+        <p>Right shot of lab</p>
+    </div>
+    <div class="image-item">
+      <img src="images/lab_right_warped.jpg" alt="Image 1">
+        <p>Right shot of lab warped to align with left shot</p>
+    </div>
+  </div>
+
+  <h3>Part 3: Rectifying Images</h3>
+  <p>
+    A neat thing we can do with our homographies is to rectify images. e.g. map square or rectangular surfaces into a flat
+    projection. This can be done by calculating the homography using the surface's corners as the x, y and the flat 
+    coordinates as the x', y' like [(0, 0), (0, 100), (100, 0), (100, 100)].
+  </p>
+
+  <p>Here are some examples of successful homographies.</p>
+
+  <div class="image-container">
+    <div class="image-item">
+        <img src="images/bair.jpg" alt="Image 1">
+        <p>Image of TV screen from an angle</p>
+    </div>
+    <div class="image-item">
+      <img src="images/rectified_bair.jpg" alt="Image 1">
+        <p>Rectified TV screen</p>
+    </div>
+    <div class="image-item">
+      <img src="images/rectified_bair_cropped.jpg" alt="Image 1">
+        <p>Cropped rectified TV screen</p>
+    </div>
+  </div>
+  <div class="image-container">
+    <div class="image-item">
+        <img src="images/maxcap.jpg" alt="Image 1">
+        <p>Image of sign from an angle</p>
+    </div>
+    <div class="image-item">
+      <img src="images/rectified_max_cap.jpg" alt="Image 1">
+        <p>Rectified signage</p>
+    </div>
+    <div class="image-item">
+      <img src="images/rectified_max_cap_cropped.jpg" alt="Image 1">
+        <p>Cropped rectified signage</p>
+    </div>
+  </div>
+
+  <h3>Part 4: Blending Images into Mosaics</h3>
+  <p>
+    Using the homography and some clever alignment math, we can stich together images so they look like they're taken
+    from the same perspective. I added an alpha chanel for the images to show where there is actually an image and when 
+    is it just empty space to pad the image. I used the alpha chanels to blend the images together when they both head
+    content.
+  </p>
+
+
+  <div class="image-container">
+    <div class="image-item">
+      <img src="images/house1.jpg" alt="Image 1">
+      <p>View of house in northside Berkeley (I)</p>
+    </div>
+    <div class="image-item">
+      <img src="images/house2.jpg" alt="Image 1">
+      <p>View of house in northside Berkeley (II)</p>
+    </div>
+    <div class="image-item">
+      <img src="images/house1+2.jpg" alt="Image 1">
+      <p>Blended view of house</p>
+    </div>
+    </div>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/imleft.jpg" alt="Image 1">
+        <p>View of classroom while I was bored (I)</p>
+        </div>
+      <div class="image-item">
+        <img src="images/imright.jpg" alt="Image 1">
+        <p>View of classroom while I was bored (II)</p>
+        </div>
+      <div class="image-item">
+        <img src="images/imleft_imright.jpg" alt="Image 1">
+        <p>Blended view of classroom</p>
+      </div>
+      </div>
+    </div>
+    <div class="image-container">
+    <div class="image-item">
+    <img src="images/lab_left.jpg" alt="Image 1">
+    <p>View of Berkeley Way West 8th Floor (I)</p>
+    </div>
+    <div class="image-item">
+    <img src="images/lab_right.jpg" alt="Image 1">
+    <p>View of Berkeley Way West 8th Floor (II)</p>
+    </div>
+    <div class="image-item">
+    <img src="images/lab_left_lab_right.jpg" alt="Image 1">
+    <p>Blended view of BWW 8th Floor</p>
+    </div>
+    </div>
+   
+
+</body>
+</html>
