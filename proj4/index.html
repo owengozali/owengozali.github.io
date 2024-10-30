@@ -19,7 +19,7 @@
 
         .big-image-item {
             flex: 2; /* Let each item take equal space */
-            max-width: 500px; /* Limit the maximum width */
+            max-width: 60%; /* Limit the maximum width */
             text-align: center; /* Center the caption below the image */
         }
 
@@ -44,6 +44,7 @@
 <body>
     <h1>Project 4 - Owen Gozali</h1>
     <h2>Photo Mosaics</h2>
+    <h2>Part A: Manual Mosaics</h2>
     <h3>Introduction</h3>
     <p>
         In this project I will be stiching together imagestaken from the same center of projection, similar to constructing
@@ -221,6 +222,233 @@
     <p>Blended view of BWW 8th Floor</p>
     </div>
     </div>
+
+    <h2>Part B: Autostitching</h2>
+    <h3>Introduction</h3>
+    <p>
+      Manual stitching works fine, but we can streamline the process significantly by automating the correspondence annotation. 
+      We can use some novel techniques to automatically detect features and calculate which ones match between images.
+    </p>
+
+  
+    <h3>Detecting Corners</h3>
+    <p>We can start by detecting corners using the Harris corner detector. We're interested in corners specifically
+      because it's easier to see correspondences between images as they would look quite different when shifted
+      in any direction. By using this corner detector, we can find many candidates for corners in the image.
+      Let's try to do this on an imageo of an intersection near my house.
+    </p>
+
+    
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/4b/bww/bww_l.jpg" alt="Image 1">
+        <p>Left View</p>
+    </div>
+      <div class="image-item">
+          <img src="images/4b/bww/bww_harris.png" alt="Image 1">
+          <p>Left View with Harris Corners</p>
+      </div>
+      <div class="image-item">
+        <img src="images/4b/bww/bww_r.jpg" alt="Image 1">
+        <p>Right View</p>
+    </div>
+    <div class="image-item">
+      <img src="images/4b/bww/bww_harris_2.png" alt="Image 1">
+      <p>Right View with Harris Corners</p>
+  </div>
+  </div>
+
+    <h3>Adaptive Non-Maximal Suppression</h3>
+    <p>This is great for giving us a good amount of corner candidates, however it is much too dense to plug into
+      our next steps in the model because we'll have to the magnitude of 3-4 thousand points. We typically only
+      need 500 or so for the next step of the process so need a way to downsample these points.</p>
+
+      <p>One straightforward method is to randomly sample but that could leave us with corner points with low
+        "corner strength" values which was calculated from the Harris detector. We could also choose the top 500
+        points with the highest corner strength, however that could lead to many points being focused on certain
+        areas of the image which isn't desirable because we would want a good distribution of the throughout.
+        A solution to this is to use Adaptive Non-Maximal Suppression which takes both distance and corner strength
+        into account when trying to select an optimal subset of points. This is the result of running ANMS on our
+        3k+ original corner candidates.
+      </p>
+
+      <div class="image-container">
+        <div class="image-item">
+            <img src="images/4b/bww/bww_harris.png" alt="Image 1">
+            <p>Left View with Harris Corners</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/bww/bww_anms.png" alt="Image 1">
+          <p>Harris Corners Narrowed Down with ANMS</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/bww/bww_harris_2.png" alt="Image 1">
+          <p>Right View with Harris Corners</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/bww/bww_anms_2.png" alt="Image 1">
+          <p>Harris Corners Narrowed Down with ANMS</p>
+        </div>
+    </div>
+    
+      <h3>Feature Matching</h3>
+      <p>Once we got a suitable set of corners, we now can start matching the points together between images to see
+        which corners in image 1 correspond to which corners in image 2. The way we do this is by selecting a 40x40
+        window around each point, apply gaussian blur to make it a smaller 8x8 window, and essentially find the two
+        corners in the other image with an 8x8 window that looks the most similar. Then we discard the ones that arent
+        significantly more similar to its closest neighbor compared to their second closest neighbor. Doing this
+        ensures points that don't have a good match are eliminated as they probably are outside of the overlapping 
+        range.
+      </p>
+
+      <p>Here is what it looks like when we apply this procedure to match up the points:</p>
+      <div class="image-container">
+        <div class="image-item">
+          <img src="images/4b/bww/bww_anms.png" alt="Image 1">
+          <p>Left Image Points</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/bww/bww_anms_2.png" alt="Image 1">
+          <p>Right Image Points</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/bww/bww_nn_1.png" alt="Image 1">
+          <p>Left Correspondences</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/bww/bww_nn_2.png" alt="Image 1">
+          <p>Right Correspondences</p>
+        </div>
+    </div>
+
+      <h3>RANSAC</h3>
+      <p>However, there may still be some pesky little outliers remaining in our image. These would significantly
+        affect the calculated homography because we calculate it using a least squares algorithm. Thus, we can
+        eliminate these outliers through the following process: randomly subsample 4 points, use them to calculate
+        a homography explicitly, then apply the homography to the remaining points and see if they are far off
+        from the points they're supposed to be paired with, if they aren't label them as "inliers". Repeat this
+        process a lot of times and find the homography with the largest number of inliers. This maximal set of
+        inliers will be the final correspondences we can use to stitch together our homographies.</p>
+        <div class="image-container">
+          <div class="image-item">
+            <img src="images/4b/bww/bww_nn_1.png" alt="Image 1">
+            <p>Initial Left Correspondences</p>
+          </div>
+          <div class="image-item">
+            <img src="images/4b/bww/bww_nn_2.png" alt="Image 1">
+            <p>Initial Right Correspondences</p>
+          </div>
+          <div class="image-item">
+            <img src="images/4b/bww/bww_ransac_1.png" alt="Image 1">
+            <p>Left with Outliers Removed via RANSAC</p>
+          </div>
+          <div class="image-item">
+            <img src="images/4b/bww/bww_ransac_2.png" alt="Image 1">
+            <p>Right with Outliers Removed via RANSAC</p>
+          </div>
+      </div>
+      <p>The rest of the procedure is identical to the manual case and we can generate some nice complex mosaics now
+        without needing to manually add the points.</p>
+        <div class="image-container">
+          <div class="image-item">
+            <img src="images/4b/bww/bww_l.jpg" alt="Image 1">
+            <p>Left View of Intersection</p>
+          </div>
+          <div class="image-item">
+            <img src="images/4b/bww/bww_r.jpg" alt="Image 1">
+            <p>Right View of Intersection</p>
+          </div>
+          <div class="image-item">
+            <img src="images/4b/bww/bww_stitched.jpg" alt="Image 1">
+            <p>Intersection Stitched Together</p>
+          </div>
+      </div>
+
+      <p>Here are some other images I stitched together automatically!</p>
+
+      <h4>Houses view from Part A</h4>
+      <div class="image-container">
+        <div class="image-item">
+          <img src="images/4b/house/house1.jpg" alt="Image 1">
+          <p>Houses Left View</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/house/house2.jpg" alt="Image 1">
+          <p>Houses Middle View</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/house/house3.jpg" alt="Image 1">
+          <p>Houses Right View</p>
+        </div>
+      </div>
+      <div class="image-container">
+        <div class="big-image-item">
+          <img src="images/4b/house/house_stitched.jpg" alt="Image 1">
+          <p>Houses Stitched</p>
+        </div>
+    </div>
+
+      <h4>Local herbs store</h4>
+
+      <div class="image-container">
+        <div class="image-item">
+          <img src="images/4b/herbs/herbs_l.jpg" alt="Image 1">
+          <p>Herb Store Left View</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/herbs/herbs_m.jpg" alt="Image 1">
+          <p>Herb Store Middle View</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/herbs/herbs_r.jpg" alt="Image 1">
+          <p>Herb Store Right View</p>
+        </div>
+      </div>
+      <div class="image-container">
+        <div class="big-image-item">
+          <img src="images/4b/herbs/herbs_stitched.jpg" alt="Image 1">
+          <p>Herb Store Stitched</p>
+        </div>
+    </div>
+
+    <h4>Berkeley Fire Department</h4>
+
+      <div class="image-container">
+        <div class="image-item">
+          <img src="images/4b/fire/fire1.jpg" alt="Image 1">
+          <p>Fire Station View 1</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/fire/fire2.jpg" alt="Image 1">
+          <p>Fire Station View 2</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/fire/fire3.jpg" alt="Image 1">
+          <p>Fire Station View 3</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/fire/fire4.jpg" alt="Image 1">
+          <p>Fire Station View 4</p>
+        </div>
+        <div class="image-item">
+          <img src="images/4b/fire/fire5.jpg" alt="Image 1">
+          <p>Fire Station View 5</p>
+        </div>
+        </div>
+      <div class="image-container">
+        <div class="big-image-item">
+          <img src="images/4b/fire/fire_stitched.jpg" alt="Image 1">
+          <p>Fire Station Stitched</p>
+        </div>
+    </div>
+    <h3>Takeaways</h3>
+      <p>I think the biggest thing I learnt from this project is that I don't need to be worried about always
+        implementing the most efficient solution from scratch. Sometimes it's better to get a basic version working
+        and then iterating on it afterwards. I learnt this when doing the feature matching because I was stuck on
+        designing a way to do the nearest neighbor searching efficiently without needing to gaussian blur it every
+        time. Eventually I just implemented it and added caching with a dictionary and it worked just fine.
+      </p>
+
    
 
 </body>
