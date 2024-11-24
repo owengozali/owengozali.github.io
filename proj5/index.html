@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 5</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: space-around; /* Space out the images */
+        }
+        .image-item {
+            flex: 0 1 20%; /* Take up at most 20% of the container */
+            text-align: center; /* Center the caption below the image */
+        }
+
+        .small-image-item {
+            flex: 0 1 10%; /* Take up at most 20% of the container */
+            text-align: center; /* Center the caption below the image */
+        }
+
+        .big-image-item {
+            flex: 2; /* Let each item take equal space */
+            max-width: 500px; /* Limit the maximum width */
+            text-align: center; /* Center the caption below the image */
+        }
+        
+        img {
+            width: 100%; /* Image takes up full width of its container */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        .big-img {
+            width: 80%; /* Image takes up full width of its container */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        .subtitle {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Project 5 - Owen Gozali</h1>
+    <h2>Part A: Fun with Diffusion Models</h2>
+    <h3>Introduction</h3>
+    <p>
+        In this part of the project I will be making use of stable diffusion models to create images from noise. I will also be making cool stuff like
+        orientation-based illusion images and frequency-based illusion images.
+    </p>
+    
+    <p> We will start by creating a function that adds noise to an image. Here is the result of running it on our test image which is the Campanile.</p>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/a/campanile_noise_250.png" alt="Image 1">
+        <p>Noise Level 250</p>
+      </div>
+      <div class="image-item">
+        <img src="images/a/campanile_noise_500.png" alt="Image 1">
+        <p>Noise Level 500</p>
+      </div>
+      <div class="image-item">
+        <img src="images/a/campanile_noise_750.png" alt="Image 1">
+        <p>Noise Level 750</p>
+      </div>
+    </div>
+
+    <p> We can start off by trying out a classical method of denoising which is adding gaussian blur. But we can see this doesn't really work and sacrifices a lot of image quality.</p>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/campanile_noise_250.png" alt="Image 1">
+        <p>Noise Level 250</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/campanile_gauss_blur_250.png" alt="Image 1">
+        <p>Noise Lvl 250, Gaussian Blurred</p>
+      </div>
+      
+      <div class="small-image-item">
+        <img src="images/a/campanile_noise_500.png" alt="Image 1">
+        <p>Noise Level 500</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/campanile_gauss_blur_500.png" alt="Image 1">
+        <p>Noise Lvl 500, Gaussian Blurred</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/campanile_noise_750.png" alt="Image 1">
+        <p>Noise Level 750</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/campanile_gauss_blur_750.png" alt="Image 1">
+        <p>Noise Lvl 750, Gaussian Blurred</p>
+      </div>
+    </div>
+
+    <p> We can then use the pretrained UNet to one-step denoise the image from various noise levels.</p>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/campanile_noise_250.png" alt="Image 1">
+        <p>Noise Level 250</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/campanile_denoised_250.png" alt="Image 1">
+        <p>Noise Lvl 250, Denoised by UNet</p>
+      </div>
+      
+      <div class="small-image-item">
+        <img src="images/a/campanile_noise_500.png" alt="Image 1">
+        <p>Noise Level 500</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/campanile_denoised_500.png" alt="Image 1">
+        <p>Noise Lvl 500, Denoised by UNet</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/campanile_noise_750.png" alt="Image 1">
+        <p>Noise Level 750</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/campanile_denoised_750.png" alt="Image 1">
+        <p>Noise Lvl 750, Denoised by UNet</p>
+      </div>
+    </div>
+
+    <p>
+      Using one step denoising usually doesn't really yield good results so in practice we try to iteratively
+      denoise the image by denoising it bit by bit each tiem.
+    </p>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/iter_camp1.png" alt="Image 1">
+        <p>Iterative Denoise i=0</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/iter_camp2.png" alt="Image 1">
+        <p>Iterative Denoise i=5</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/iter_camp3.png" alt="Image 1">
+        <p>Iterative Denoise i=10</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/iter_camp4.png" alt="Image 1">
+        <p>Iterative Denoise i=15</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/iter_camp5.png" alt="Image 1">
+        <p>Iterative Denoise i=20</p>
+      </div>
+    </div>
+
+    <p>
+      Here is the image cleaned with iterative denoising compared to one-step denoising and gaussian blur:.
+    </p>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/a/iterative_denoise_core.png" alt="Image 1">
+        <p>Iteratively Denoised Campanile</p>
+      </div>
+      <div class="image-item">
+        <img src="images/a/iterative_denoise_one_step.png" alt="Image 1">
+        <p>One-step Denoised Campanile</p>
+      </div>
+      <div class="image-item">
+        <img src="images/a/iterative_denoise_gauss.png" alt="Image 1">
+        <p>Gaussian-Blur-Denoised Campanile</p>
+      </div>
+    </div>
+
+
+
+    <p>
+      Using pure noise as the first input to the image, we can prompt the image to generate something from scratch.
+    </p>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/highq1.png" alt="Image 1">
+        <p>Generated Image 1</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/highq2.png" alt="Image 1">
+        <p>Generated Image 2</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/highq3.png" alt="Image 1">
+        <p>Generated Image 3</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/highq4.png" alt="Image 1">
+        <p>Generated Image 4</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/highq5.png" alt="Image 1">
+        <p>Generated Image 5</p>
+      </div>
+    </div>
+
+    <p>
+      We can gain better results by using classifier free guidance. 
+      Using the prompt "a high quality image" and a gamma of 5 we gain the following results:
+    </p>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/cfg1.png" alt="Image 1">
+        <p>CFG Generated Image 1</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/cfg2.png" alt="Image 1">
+        <p>CFG Generated Image 2</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/cfg3.png" alt="Image 1">
+        <p>CFG Generated Image 3</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/cfg4.png" alt="Image 1">
+        <p>CFG Generated Image 4</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/cfg5.png" alt="Image 1">
+        <p>CFG Generated Image 5</p>
+      </div>
+    </div>
+
+    <p>
+      By adding some noise to an image and putting it into the model, we can generate small edits to existing images.
+    </p>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/sdedit1.png" alt="Image 1">
+        <p>SDEdit with start_i=1</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/sdedit2.png" alt="Image 1">
+        <p>SDEdit with start_i=3</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/sdedit3.png" alt="Image 1">
+        <p>SDEdit with start_i=5</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/sdedit4.png" alt="Image 1">
+        <p>SDEdit with start_i=7</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/sdedit5.png" alt="Image 1">
+        <p>SDEdit with start_i=10</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/sdedit6.png" alt="Image 1">
+        <p>SDEdit with start_i=20</p>
+      </div>
+    </div>
+
+    <p>
+      We can do the same with hand drawn images or non-realistic images from the web to generate realistic versions of them.
+    </p>
+
+    <!-- IMAGES OF MAKING NON REAL IMAGES MORE REAL 1-->
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/primo1.png" alt="Image 1">
+        <p>Online Image with start_i=1</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/primo2.png" alt="Image 1">
+        <p>Online Image with start_i=3</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/primo3.png" alt="Image 1">
+        <p>Online Image with start_i=5</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/primo4.png" alt="Image 1">
+        <p>Online Image with start_i=7</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/primo5.png" alt="Image 1">
+        <p>Online Image with start_i=10</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/primo6.png" alt="Image 1">
+        <p>Online Image with start_i=20</p>
+      </div>
+    </div>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/snowman1.png" alt="Image 1">
+        <p>Hand-drawn Snowman with start_i=1</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/snowman2.png" alt="Image 1">
+        <p>Hand-drawn Snowman with start_i=3</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/snowman3.png" alt="Image 1">
+        <p>Hand-drawn Snowman with start_i=5</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/snowman4.png" alt="Image 1">
+        <p>Hand-drawn Snowman with start_i=7</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/snowman5.png" alt="Image 1">
+        <p>Hand-drawn Snowman with start_i=10</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/snowman6.png" alt="Image 1">
+        <p>Hand-drawn Snowman with start_i=20</p>
+      </div>
+    </div>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/max1.png" alt="Image 1">
+        <p>Hand-drawn Face with start_i=1</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/max2.png" alt="Image 1">
+        <p>Hand-drawn Face with start_i=3</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/max3.png" alt="Image 1">
+        <p>Hand-drawn Face with start_i=5</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/max4.png" alt="Image 1">
+        <p>Hand-drawn Face with start_i=7</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/max5.png" alt="Image 1">
+        <p>Hand-drawn Face with start_i=10</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/max6.png" alt="Image 1">
+        <p>Hand-drawn Face with start_i=20</p>
+      </div>
+    </div>
+
+    <p>
+      We can also do inpainting by blocking out a patch of the image and prompting the model to fill in the blank, 
+      keeping the rest of the image the same.
+    </p>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/a/camp_clean.png" alt="Image 1">
+        <p>Clean Image of Campanile</p>
+      </div>
+      <div class="image-item">
+        <img src="images/a/camp_mask.png" alt="Image 1">
+        <p>Mask for Inpainting</p>
+      </div>
+      <div class="image-item">
+        <img src="images/a/camp_cropped.png" alt="Image 1">
+        <p>Part of image to be painted over</p>
+      </div>
+      <div class="image-item">
+        <img src="images/a/camp_inpainted.png" alt="Image 1">
+        <p>Inpainted Image</p>
+      </div>
+    </div>
+
+    <p>
+      We can also use the prompt to transform one image into another by adding some noise and running it through the model.
+    </p>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/im2im1.png" alt="Image 1">
+        <p>Campanile to Rocket with start_i=1</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/im2im2.png" alt="Image 1">
+        <p>Campanile to Rocket with start_i=3</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/im2im3.png" alt="Image 1">
+        <p>Campanile to Rocket with start_i=5</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/im2im4.png" alt="Image 1">
+        <p>Campanile to Rocket with start_i=7</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/im2im5.png" alt="Image 1">
+        <p>Campanile to Rocket with start_i=10</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/im2im6.png" alt="Image 1">
+        <p>Campanile to Rocket with start_i=20</p>
+      </div>
+    </div>
+
+    <p>
+      We can also make visual anagrams as well by prompting the model to generate different things when the image is upright vs upside down.
+    </p>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/ana1.png" alt="Image 1">
+        <p>Upright Image of Old Man</p>
+      </div>
+      <div class="small-image-item">
+        <img src="images/a/ana2.png" alt="Image 1">
+        <p>Upside Down Image of People Around Campfire</p>
+      </div>
+    </div>
+
+    <p>
+      In a similar vein, we can create illusions by prompting the model differently for low and high freq.
+    </p>
+
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/a/freq1.png" alt="Image 1">
+        <p>From Afar: Image of Old Man</p>
+      </div>
+      <div class="image-item">
+        <img src="images/a/freq2.png" alt="Image 1">
+        <p>Up Close: Image of People Around Campfire</p>
+      </div>
+    </div>
+
+    <h2>Part B: Diffusion Models from Scratch</h2>
+    <h3>Introduction</h3>
+    <p>
+        In this part of the project I will be making a stable diffusion model from scratch using Pytorch.
+    </p>
+
+    <h3>Part 1: Training a Single-Step Denoising UNet</h3>
+    <p>
+      First we take the MNIST handwritten digits dataset and add varying levels of noise to it as so:
+    </p>
+
+    <div class="image-container">
+      <div class="big-image-item">
+        <img src="images/varying_noise.png" alt="Image 1">
+        <p>A sample image from the dataset with varying amounts of noise [0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0].</p>
+      </div>
+    </div>
+
+    <p>
+      We're trying to create a model that takes a noisy image and predicts the clean image it came from. We can
+      achieve this using a UNet architecture with some skip connections. To train the model, we feed in the images
+      of the noisy digits and take evaluate its output using a L2 loss with the clean image. After training it over
+      5 epochs we get the following loss curve:
+    </p>
+
+    <div class="image-container">
+      <div class="big-image-item">
+        <img src="images/loss_curve_one_step.png" alt="Image 1">
+        <p>Loss curve for one step denoising UNet.</p>
+      </div>
+    </div>
+
+    <p>
+      Here is what the model's denoising capabilities look like after one and five epochs of training:
+    </p>
+
+    <div class="image-container">
+      <div class="big-image-item">
+        <img src="images/one_step_denoise_epoch_1.png" alt="Image 1">
+        <p>One-step denoising output after 1 epoch</p>
+      </div>
+      <div class="big-image-item">
+        <img src="images/one_step_denoise_epoch_3.png" alt="Image 1">
+        <p>One-step denoising output after 3 epochs</p>
+      </div>
+      <div class="big-image-item">
+        <img src="images/one_step_denoise_epoch_5.png" alt="Image 1">
+        <p>One-step denoising output after 5 epochs</p>
+      </div>
+    </div>
+
+    <p>
+      Despite the model only being trained to denoise a level of alpha = 0.5, we can see that it also performs quite
+      well for noise levels that it wasn't trained on:
+    </p>
+
+    <div class="image-container">
+      <div class="big-img">
+        <img src="images/ood_performance.png" alt="Image 1">
+      </div>
+    </div>
+
+    <h3>Part 2: Training a Diffusion Model</h3>
+
+    <h4>Adding Time Conditioning for Image Generation</h4>
+
+    <p>
+      With the model being able to successfully denoise an image at a certain noise level (0.5), we can now generalize the model
+      to work with any noise level by conditioning the image on how much noise is the image expected to have. This will be useful
+      when creating iterative denoising because we start from a very noisy image and slowly denoise one step at a time.
+    </p>
+    <p>
+      With some manipulation of the model architecture to condition its output on another input t, which represents the stage of
+      denoising that the current image is on, we can train it a similar way as before and yield the following results:
+    </p>
+
+    <div class="image-container">
+      <div class="big-image-item">
+        <img src="images/training_loss_time_conditioned.png" alt="Image 1">
+        <p>Loss curve for UNet with time conditioning</p>
+      </div>
+    </div>
+    
+    <p>
+      We can generate some images by using iterative denoising and starting from images of pure noise. We can 
+      see the model getting progressively better at generating digits, but ultimately doesn't do a stellar job.
+    </p>
+
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/unconditioned_epoch_1.png" alt="Image 1">
+        <p>Epoch 1</p>
+      </div>
+      <div class="image-item">
+        <img src="images/unconditioned_epoch_5.png" alt="Image 1">
+        <p>Epoch 5</p>
+      </div>
+      <div class="image-item">
+        <img src="images/unconditioned_epoch_10.png" alt="Image 1">
+        <p>Epoch 10</p>
+      </div>
+      <div class="image-item">
+        <img src="images/unconditioned_epoch_20.png" alt="Image 1">
+        <p>Epoch 20</p>
+      </div>
+    </div>
+
+    <p>Here is a GIF of the iterative denoising process:</p>
+
+    <div class="image-container">
+      <div class="big-image-item  ">
+        <img src="images/class_free_generated_digits_epoch_20.gif" alt="Image 1">
+      </div>
+    </div>
+
+   <h4>Adding Class Conditioning for Image Generation</h4>
+   <p>
+    Lastly, we also want our model to be able to generate a specific digit instead of just a random one. This should hopefully
+    yield better results as the model is more guided towards a certain digit and should be able to generate more realistic images.
+   </p>
+   <p>
+    To achieve this, we simply condition the model on c as well, which is a one hot encoding of which digit the image should be.
+    Training it the same way as above yields the following loss curve:
+   </p>
+
+   <div class="image-container">
+    <div class="image-item">
+      <img src="images/training_loss_time_conditioned.png" alt="Image 1">
+      <p>Loss curve for UNet with class conditioning as well</p>
+    </div>
+  </div>
+   <p>
+    For image generation, we use classifier free guidance to provide better images. The course website said to use a gamma of 5 
+    but my model performed better with gamma=2 so I will stick with that. Here are the results:
+   </p>
+   <div class="image-container">
+    <div class="image-item">
+      <img src="images/epoch_5_final.png" alt="Image 1">
+      <p>5 epochs</p>
+    </div>
+    <div class="image-item">
+      <img src="images/epoch_20_final.png" alt="Image 1">
+      <p>20 epochs</p>
+    </div>
+  </div>
+
+</body>
+</html>
