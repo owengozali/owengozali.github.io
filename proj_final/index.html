@@ -27,6 +27,12 @@
             max-width: 500px; /* Limit the maximum width */
             text-align: center; /* Center the caption below the image */
         }
+
+        .bigger-image-item {
+            flex: 2; /* Let each item take equal space */
+            max-width: 800px; /* Limit the maximum width */
+            text-align: center; /* Center the caption below the image */
+        }
         
         img {
             width: 100%; /* Image takes up full width of its container */
@@ -371,12 +377,30 @@
         <img src="images/results/final PSNR.png" alt="Image 1">
       </div>
     </div>
-    <p>After fully training the network, we can also visualize the scene in a 360 manner using a novel test set of camera angles.</p>
+    <p>After fully training the network, we can also visualize the scene in a 360 manner using a novel test set of camera angles. We then generate a GIF by combining all the images together in a sequence.</p>
     <div class="image-container">
       <div class="big-image-item  ">
         <img src="images/results/generated_images.gif" alt="Image 1">
         <p>Final Result</p>
       </div>
+      <div class="big-image-item  ">
+        <img src="images/bw/generated_images_b_w.gif" alt="Image 1">
+        <p>B&W Result</p>
+      </div>
     </div>
+    <h4>Bells and Whistles</h4>
+    <p>Lastly, for Bells and Whistles we can change the background color of the scene by modifying our volumetric rendering function as follows:</p>
+    <div class="image-container">
+      <div class="big-image-item  ">
+        <img src="images/bw/volrend.png" alt="Image 1">
+        <p>Original Volume Rendering Formula</p>
+      </div>
+      <div class="bigger-image-item  ">
+        <img src="images/bw/volrend_modified.png" alt="Image 1">
+        <p>Modified Volume Rendering Formula</p>
+      </div>
+    </div>
+    <p>Where <code>c<sub>bg</sub></code> represents our desired background color.</p>
+    
 </body>
 </html>
