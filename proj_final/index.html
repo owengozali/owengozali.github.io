@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Final Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: space-around; /* Space out the images */
+        }
+        .image-item {
+            flex: 0 1 20%; /* Take up at most 20% of the container */
+            text-align: center; /* Center the caption below the image */
+        }
+
+        .small-image-item {
+            flex: 0 1 10%; /* Take up at most 20% of the container */
+            text-align: center; /* Center the caption below the image */
+        }
+
+        .big-image-item {
+            flex: 2; /* Let each item take equal space */
+            max-width: 500px; /* Limit the maximum width */
+            text-align: center; /* Center the caption below the image */
+        }
+        
+        img {
+            width: 100%; /* Image takes up full width of its container */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        .big-img {
+            width: 80%; /* Image takes up full width of its container */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        .subtitle {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Final Project - Owen Gozali</h1>
+    <h2>Neural Radiance Fields</h2>
+    <div class="image-container">
+      <div class="big-image-item  ">
+        <img src="images/results/generated_images.gif" alt="Image 1">
+      </div>
+    </div>
+    <h3>Introduction</h3>
+    <p>
+      This project focuses on using Neural Radiance Fields (NeRFs) to reconstruct 3D structures programmatically 
+      from 2D images taken from various perspectives. By leveraging deep learning and computer vision techniques, 
+      NeRFs enable high-quality, photorealistic 3D renderings with detailed lighting and geometry.
+    </p>
+
+    <h2>Part 1: 2D NeRFs</h2>
+    <h3>Overview</h3>
+    <p>
+        We will start with generating 2D NeRFs, which is a simplified version of NeRFS to get us started. The goal is to feed
+        one image to train a network and the network should be able to return the color when prompted by a specific pixel in the 
+        image.
+    </p>
+
+    <h3>Network</h3>
+    <p>
+      The core of our implementation is a Multilayer Perceptron (MLP) designed to take 2D pixel coordinates as input and output RGB 
+      color values. To achieve this, the model utilizes Sinusoidal Positional Encoding (PE), which expands the 2D coordinates into a 
+      higher-dimensional representation. This encoding enhances the model’s ability to learn complex spatial patterns by including 
+      higher-frequency information.
+    </p>
+    
+    <p>
+      The MLP consists of multiple fully connected layers with non-linear activations (ReLU), followed by a final Sigmoid activation 
+      layer to ensure that the output RGB values remain in the range [0, 1]. Normalization of input image data is critical—pixel values 
+      are scaled from [0, 255] to [0, 1], aligning with the output constraints. For hyperparameters, we chose to use an Adam optimizer with
+      lr = 1e-2, batch_size = 10000, and num_iterations = 2000.
+    </p>
+
+    <div class="image-container">
+      <div class="big-image-item">
+        <img src="images/part1/architecture.png" alt="Image 1">
+        <p>Model Architecture</p>
+      </div>
+    </div>
+
+    <p><strong>Model Architecture:</strong></p>
+        <ul>
+            <li>Input: 2D pixel coordinates expanded to 42 dimensions via PE.</li>
+            <li>Hidden Layers: Fully connected layers with ReLU activations.</li>
+            <li>Output Layer: A 3D vector representing RGB values, constrained with a Sigmoid activation.</li>
+        </ul>
+     
+    <p>
+      This architecture allows the MLP to represent complex spatial patterns and predict the color of any pixel in the image.
+    </p>
+    
+    <h3>Dataloader</h3>
+    <p>
+      To optimize training on high-resolution images, we implemented a custom dataloader that randomly samples a subset of pixels at each iteration. 
+      This approach allows us to be sample efficient and allows the model to learn what the image looks like without seeing every possible pixel.
+      This approach becomes more important when we do 3D NeRFs where feeding the model every posible point is intractible.
+    </p>
+    <p><strong>How It Works:</strong></p>
+        <ul>
+            <li>At each iteration, the dataloader samples <code>N</code> random pixels from the image.</li>
+            <li>It returns both the normalized 2D coordinates (scaled by image dimensions) and the corresponding RGB values (scaled to [0, 1]).</li>
+        </ul>
+    
+    <h3>Loss Function, Optimizer, and Metric</h3>
+    <p><strong>Loss Function:</strong></p>
+    <p>
+      We used Mean Squared Error (MSE) as the loss function to quantify the difference between the predicted RGB values 
+      and the ground truth. MSE is simple and effective for measuring pixel-wise reconstruction quality.
+    </p>
+
+    <p><strong>Optimizer:</strong></p>
+        <p>
+            The model was trained using the Adam optimizer with a learning rate of <code>1 × 10<sup>-2</sup></code>. Adam's 
+            adaptive learning rate ensures efficient convergence even with non-linear activations and positional encodings.
+        </p>
+        <p><strong>Metric:</strong></p>
+        <p>
+            While MSE measures reconstruction accuracy during training, Peak Signal-to-Noise Ratio (PSNR) is used as the primary 
+            evaluation metric. PSNR is better suited for comparing image quality and is calculated from the MSE using the formula:
+        </p>
+        <pre>
+            PSNR = 20 × log10(1 / sqrt(MSE))
+        </pre>
+        <p>
+            PSNR values provide a clearer picture of the network’s ability to reconstruct fine details as training progresses.
+        </p>
+
+    <h3>Results</h3>
+    <p>
+        We then trained the model using our dataloader and we can see the predicted image being progressively better as we increase step size.
+    </p>
+    <div class="image-container">
+        <img src="images/part1/results_fox.png" alt="Image 1">
+    </div>
+    <p>
+      We can see this improvement in quality reflected in the PSNR as well through a quantitative graph:
+    </p>
+    <div class="image-container">
+      <div class="big-image-item">
+        <img src="images/part1/psnr_fox.png" alt="Image 1">
+        <p>PSNR for Fox Image</p>
+      </div>
+    </div>
+    <p>
+      We tried running it on a different image as well using the same architecture and hyperparameters as well. 
+      This method should work well for other images, too.
+    </p>
+    <div class="image-container">
+        <img src="images/part1/results_temple.png" alt="Image 1">
+    </div>
+    <div class="image-container">
+      <div class="big-image-item">
+        <img src="images/part1/psnr_temple.png" alt="Image 1">
+        <p>PSNR for Temple Image</p>
+      </div>
+    </div>
+
+    <h3>Hyperparameter Tuning</h3>
+    <p><strong>Exploring Hyperparameters:</strong></p>
+    <p>We experimented with two key hyperparameters:</p>
+    <ul>
+        <li><strong>Max Frequency (L) for Positional Encoding:</strong> Determines the richness of high-frequency details in the expanded input.</li>
+        <li><strong>Learning Rate:</strong> Controls the step size for weight updates during optimization.</li>
+    </ul>
+    <p><strong>Varying L</strong></p>
+    <p>After trying varying values of L = [0, 2, 5, 10, 20, 40], we saw that increasing L generally improves the network’s ability to capture finer 
+      details but increases model complexity which may lead to slow model training and potential overfitting if set too high.</p>
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/hyperparams/L_graph.png" alt="Image 1">
+      </div>
+    </div>
+    <div class="image-container">
+      <img src="images/hyperparams/L_images.png" alt="Image 1">
+    </div>
+    <ul>
+
+      <p><strong>Varying LR</strong></p>
+    <p>After trying varying values of lr = [1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4, 1e-4], we saw that an lr value between 0.01 and 0.001 yielded the best results.
+      This could be because the model never gets to a minima if the lr is set too high and it reaches the minima too slowly when lr is set too low.
+    </p>
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/hyperparams/lr_graph.png" alt="Image 1">
+      </div>
+    </div>
+    <div class="image-container">
+      <img src="images/hyperparams/lr_images.png" alt="Image 1">
+    </div>
+
+  <h2>Part 2: 3D NeRFs</h2>
+  <h3>Overview</h3>
+  <p>
+      We can now continue to making fully 3D NeRFs, which take in 2D images from different perspectives and generates
+      a 3D structure out of them. The approach is similar to the 2D NeRFs where we query the model for the color at a
+      particular point, but now we query with a 3D point alongside a ray direction and receive both the color and density
+      of the point.
+  </p>
+
+  <h3>Part 2.1: Create Rays from Cameras</h3>
+
+    <h4>Camera to World Coordinate Conversion</h4>
+    <p>To convert camera coordinates to world coordinates, we use the camera's extrinsic matrix, which encapsulates the rotation and translation needed to align the camera's coordinate system with the world coordinate system. Specifically:</p>
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/math/c2w_eq.png" alt="Image 1">
+        <p>Relationship between world coordinates and camera coordinates</p>
+      </div>
+    </div>
+    <p>We can use the inverse of the matrix above to get the "c2w" matrix, which is luckily already provided to us in the training data.</p>
+    
+
+    <h4>Pixel to Camera Coordinate Conversion</h4>
+    <p>Pixel coordinates in an image are converted to camera coordinates using the camera's intrinsic matrix. This matrix accounts for the focal length and principal point offset of the camera.</p>
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/math/K.png" alt="Image 1">
+        <p>Camera Intrinsic Matrix, K</p>
+      </div>
+    </div>
+    <p>We can construct such a matrix and use it to convert image pixels in to camera coordinates</p>
+
+    <h4>Pixel to Ray</h4>
+    <p>To convert pixel coordinates into rays:</p>
+    <ol>
+        <li>Convert pixel coordinates to camera coordinates using the intrinsic matrix.</li>
+        <li>Transform these camera coordinates into world coordinates using the extrinsic matrix.</li>
+        <li>The ray origin (<code>ray_o</code>) is the camera's position in world coordinates, obtained directly from the extrinsic matrix.</li>
+        <li>The ray direction (<code>ray_d</code>) is computed as the normalized vector pointing from the ray origin to the transformed world coordinate of the pixel.</li>
+    </ol>
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/math/r_o.png" alt="Image 1">
+      </div>
+      <div class="small-image-item">
+        <img src="images/math/r_d.png" alt="Image 1">
+      </div>
+    </div>
+    <p>This results in a set of rays (<code>ray_o</code>, <code>ray_d</code>) for each pixel in the image. We then combine this with the color associated with each queried pixel to return the (<code>ray_o</code>, <code>ray_d</code>, <code>color</code>) tuples.</p>
+
+    <h3>Part 2.2: Sampling</h3>
+
+    <h4>Sampling Rays from Images</h4>
+    <p>To efficiently train the NeRF model, we sample rays from images by selecting random pixels. This involves:</p>
+    <ol>
+        <li>Choosing a subset of images to sample pixels from.</li>
+        <li>Choosing a random subset of pixels from each image.</li>
+        <li>Using the methods described in Part 2.1 to compute the rays (<code>ray_o</code> and <code>ray_d</code>) for the selected pixels.</li>
+        <li>Returning these rays along with their corresponding RGB color values, extracted from the image.</li>
+    </ol>
+    <p>This approach ensures that the model is trained on diverse parts of the image while keeping memory usage manageable.</p>
+
+    <h4>Sampling Points along Rays</h4>
+    <p>To feed the NeRF model, we sample 3D points along the rays by generating points spaced equally along it. This could be done by generating t values that are equally spaced from a specified depth range and calculating the following:</p>
+    <div class="image-container">
+      <div class="small-image-item">
+        <img src="images/math/sample_among_ray.png" alt="Image 1">
+      </div>
+    </div>
+    <p>To prevent systematic overfitting, we can add some randomness to the T's generated to ensure we don't keep sampling the same points.</p>
+
+    <h3>Part 2.3: Putting It All Together</h3>
+
+    <p>In this section, we integrate the components we've built so far to form a complete pipeline for sampling rays and visualizing them.</p>
+
+    <h4>Using the Ray Sampler</h4>
+    <p>Now that we've implemented the ray sampling functionality, we can query a set of random rays from the input images. For each ray, we can sample a set of points along its path to be fed into the model. This process ensures that we have a diverse set of rays and corresponding 3D points that can be used for training the NeRF model.</p>
+    <p>Specifically, the ray sampler generates rays by selecting random pixels from the input image, converting these pixel coordinates into rays, and then sampling points along each ray. The resulting rays and sampled points are used as input for the model, helping it learn to generate realistic 3D reconstructions.</p>
+
+    <h4>Visualizing Rays with Viser</h4>
+    <p>Once we have sampled the rays and points, we can visualize the results using Viser, an open-source software developed by NerfStudio. Viser provides a convenient way to visualize rays and sampled points in a 3D space. It renders the rays as lines and the sampled points as small spheres, making it easy to inspect the ray sampling process.</p>
+    <p>Viser also allows us to interactively explore the rays and sampled points, providing a deeper understanding of how the rays traverse the 3D scene. This visualization tool is essential for debugging and optimizing the sampling process.</p>
+
+    <h4>Visualizations of the Sampled Rays</h4>
+    <p>We visualized the rays sampled randomly (from a random subsample of ~20 images) as well as the rays sampled from a single image for visualization purposes:</p>
+    <div class="image-container">
+      <div class="big-image-item">
+        <img src="images/viser/many_img.png" alt="Image 1">
+        <p>Rays Sampled From Plenty Images</p>
+      </div>
+      <div class="big-image-item">
+        <img src="images/viser/one_img.png" alt="Image 1">
+         <p>Rays Sampled From One Image</p>
+      </div>
+      <div class="big-image-item">
+        <img src="images/viser/one_img2.png" alt="Image 1">
+        <!-- IMPLEMENT -->
+         <p>Close-Up of Single-Image Sampled Rays</p>
+      </div>
+    </div>
+    <h3>Neural Radiance Field Network</h3>
+    <p>In this section, we build a neural network model that extends the concepts from Part 1, 
+      but with key differences suited for 3D space. We list the differences as follows: </p> 
+      <ul>
+        <li><strong>3D Coordinates</strong>: The model now queries 3D points in space rather than just 2D pixel coordinates.</li>
+        <li><strong>Ray Direction</strong>: In addition to the 3D coordinates, the model also takes the direction of the ray into account to model light behavior.</li>
+        <li><strong>RGB and Density Output</strong>: The model returns both RGB values and the density at each point, unlike in Part 1 where only RGB values were returned.</li>
+        <li><strong>Deeper Architecture</strong>: The model is deeper to capture more complex representations necessary for 3D scene understanding.</li>
+        <li><strong>Concatenations</strong>: Concatenating the 3D position and ray direction at various layers ensures that the model retains key pieces of information throughout the network.</li>
+      </ul>
+      <p>The specific model architecture details are shown as follows:</p>
+      <div class="image-container">
+        <div class="big-image-item">
+          <img src="images/nerf/model_arch.png" alt="Image 1">
+          <p>Model Architecture</p>
+        </div>
+      </div>
+
+      <h3>Part 2.5: Volume Rendering</h3>
+  
+  <h4>Rendering Equation</h4>
+  <p>Volume rendering involves using the model's output to generate a realistic image by simulating how light travels through a scene. 
+    Given the model's output—RGB values and density at sampled points along each ray—we apply a rendering equation that takes into account
+    the density and color along the ray to see what a view from that angle would look like. Explicitly we calculate it with the following:</p>
+  <div class="image-container">
+    <div class="big-image-item">
+      <img src="images/nerf/discrete.png" alt="Image 1">
+      <p>Discrete Volumetric Rendering Equation</p>
+    </div>
+  </div>
+  <p>Which is a discrete (and thus computable) version of the true volumetric rendering equation (which would otherwise feature an integral)</p>
+  <h4>Results</h4>
+  <p>Using the function, we're able to render what the image would look like from a specified angle. We can use it to visualize how the model's generated image
+    would look like throughout training.</p>
+    <div class="image-container">
+      <div class="image-item">
+        <img src="images/results/generated_image_1.png" alt="Image 1">
+        <p>After 100 Steps</p>
+      </div>
+      <div class="image-item">
+        <img src="images/results/generated_image_2.png" alt="Image 1">
+        <p>After 200 Steps</p>
+      </div>
+      <div class="image-item">
+        <img src="images/results/generated_image_3.png" alt="Image 1">
+        <p>After 300 Steps</p>
+      </div>
+      <div class="image-item">
+        <img src="images/results/generated_image_4.png" alt="Image 1">
+        <p>After 400 Steps</p>
+      </div>
+      <div class="image-item">
+        <img src="images/results/generated_image_5.png" alt="Image 1">
+        <p>After 500 Steps</p>
+      </div>
+      <div class="image-item">
+        <img src="images/results/generated_image_10.png" alt="Image 1">
+        <p>After 1000 Steps</p>
+      </div>
+      <div class="image-item">
+        <img src="images/results/generated_image_25.png" alt="Image 1">
+        <p>After 2500 Steps</p>
+      </div>
+    </div>
+    <p>After fully training the network, we can also visualize the scene in a 360 manner using a novel test set of camera angles.</p>
+    <div class="image-container">
+      <div class="big-image-item  ">
+        <img src="images/results/generated_images.gif" alt="Image 1">
+        <p>Final Result</p>
+      </div>
+    </div>
+</body>
+</html>
