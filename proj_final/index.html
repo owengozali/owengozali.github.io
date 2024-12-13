@@ -179,7 +179,7 @@
     <p>After trying varying values of L = [0, 2, 5, 10, 20, 40], we saw that increasing L generally improves the network’s ability to capture finer 
       details but increases model complexity which may lead to slow model training and potential overfitting if set too high.</p>
     <div class="image-container">
-      <div class="image-item">
+      <div class="big-image-item">
         <img src="images/hyperparams/L_graph.png" alt="Image 1">
       </div>
     </div>
@@ -193,7 +193,7 @@
       This could be because the model never gets to a minima if the lr is set too high and it reaches the minima too slowly when lr is set too low.
     </p>
     <div class="image-container">
-      <div class="image-item">
+      <div class="big-image-item">
         <img src="images/hyperparams/lr_graph.png" alt="Image 1">
       </div>
     </div>
@@ -363,6 +363,12 @@
       <div class="image-item">
         <img src="images/results/generated_image_25.png" alt="Image 1">
         <p>After 2500 Steps</p>
+      </div>
+    </div>
+    <p>We can also track the PSNR values on the validation set throughout training and see it steadily increasing over time before reaching >24 PSNR near the end of training.</p>
+    <div class="image-container">
+      <div class="big-image-item  ">
+        <img src="images/results/final PSNR.png" alt="Image 1">
       </div>
     </div>
     <p>After fully training the network, we can also visualize the scene in a 360 manner using a novel test set of camera angles.</p>
